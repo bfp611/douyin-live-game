@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>弹幕闯关 · 控制台</title>
+<style>
+  :root {
+    --bg: #0d0918;
+    --panel: #171126;
+    --panel-2: #1f1733;
+    --line: rgba(255, 255, 255, 0.08);
+    --text: #efe9ff;
+    --muted: #a99dc4;
+    --accent: #ffd166;
+    --ok: #57f287;
+    --bad: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(1100px 700px at 80% -10%, #2a1642 0%, transparent 60%), var(--bg);
+    color: var(--text);
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    padding: 40px 24px 64px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+  h1 { font-size: 30px; margin: 0; letter-spacing: 1px; }
+  h1 span { color: var(--accent); }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 999px;
+    background: var(--panel); border: 1px solid var(--line);
+    font-size: 14px; color: var(--muted);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #8d84a3; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 12px var(--ok); }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 20px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+    padding: 24px; min-width: 0;
+  }
+  .card h2 { font-size: 17px; margin: 0 0 16px; color: var(--accent); font-weight: 700; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  input {
+    flex: 1 1 200px; min-width: 0;
+    background: #0f0a1c; color: var(--text);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 15px; font-size: 15px; outline: none;
+    font-family: inherit;
+  }
+  input:focus { border-color: rgba(255, 209, 102, 0.55); }
+  button {
+    border: 0; border-radius: 12px; padding: 13px 20px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    background: var(--accent); color: #1c1206;
+    font-family: inherit; white-space: nowrap;
+  }
+  button:hover { filter: brightness(1.06); }
+  button.ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+  .stat { background: #0f0a1c; border-radius: 12px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+  .stat span { font-size: 15px; word-break: break-all; }
+  .error { margin-top: 14px; color: var(--muted); font-size: 13px; min-height: 18px; }
+  .error.bad { color: var(--bad); }
+  ol { margin: 0; padding-left: 20px; color: var(--muted); font-size: 14px; line-height: 1.9; }
+  ol b { color: var(--text); }
+  code {
+    background: #0f0a1c; border: 1px solid var(--line); border-radius: 6px;
+    padding: 2px 7px; font-size: 13px; color: #ffe6a8;
+    overflow-wrap: anywhere;
+  }
+  .sim { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .sim input { flex: 1; }
+  .quick { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .quick button { padding: 8px 16px; font-size: 14px; }
+  .note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.7; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .tag { background: #0f0a1c; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+  .tag b { color: var(--accent); }
+  footer { margin-top: 24px; color: #6f6488; font-size: 12px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>弹幕闯关<span>大乱斗</span> · 控制台</h1>
+    <div class="pill"><span class="dot" id="dot"></span><span id="pillText">未连接</span></div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>直播间</h2>
+      <label for="roomInput">直播间号 / 直播链接（live.douyin.com/ 后面的数字）</label>
+      <div class="row">
+        <input id="roomInput" placeholder="例如 123456789 或 https://live.douyin.com/123456789" autocomplete="off">
+        <button id="connectBtn">连接</button>
+      </div>
+      <div class="actions">
+        <button class="ghost" id="overlayBtn">打开直播画面</button>
+        <button class="ghost" id="disconnectBtn">断开直播间</button>
+        <button class="ghost" id="voiceBtn">语音播报：开</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>连接状态</b><span id="phase">—</span></div>
+        <div class="stat"><b>直播间名称</b><span id="title">—</span></div>
+        <div class="stat"><b>直播间状态</b><span id="roomStatus">—</span></div>
+        <div class="stat"><b>收到的消息</b><span id="messages">0</span></div>
+        <div class="stat"><b>弹幕条数</b><span id="chats">0</span></div>
+        <div class="stat"><b>直播画面</b><span id="clients">未连接</span></div>
+      </div>
+      <div class="error" id="error"></div>
+    </div>
+
+    <div class="card">
+      <h2>OBS 接入（一次性设置）</h2>
+      <ol>
+        <li>打开 <b>直播伴侣 / OBS</b>，添加 <b>浏览器源</b></li>
+        <li>地址填 <code id="overlayUrl">http://127.0.0.1:3000/overlay</code></li>
+        <li>竖屏直播填宽度 <b>1080</b>、高度 <b>1920</b>（横屏画布填 1920×1080，会自动留边）</li>
+        <li>点上面的「打开直播画面」先预览效果</li>
+        <li>开播前在左侧填直播间号并点「连接」</li>
+        <li>语音播报走「浏览器源」的声音，确认 OBS 混音里这个源没静音</li>
+      </ol>
+      <div class="tags">
+        <div class="tag"><b>加入</b> 生成角色</div>
+        <div class="tag"><b>跳</b> 蓄力跳障碍</div>
+        <div class="tag"><b>冲</b> 加速</div>
+        <div class="tag"><b>护</b> 护盾</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>本地彩排</h2>
+      <label>模拟一条弹幕（只在本地画面显示，不进抖音，也不计入今日总榜）</label>
+      <div class="sim">
+        <input id="simNick" placeholder="昵称" value="测试观众" style="max-width:180px">
+        <input id="simText" placeholder="发「加入」测试上车，或「跳」「冲」「护」" value="加入">
+        <button id="simBtn">发送</button>
+      </div>
+      <div class="quick">
+        <button class="ghost" data-cmd="加入">加入</button>
+        <button class="ghost" data-cmd="跳">跳</button>
+        <button class="ghost" data-cmd="冲">冲</button>
+        <button class="ghost" data-cmd="护">护</button>
+      </div>
+      <div class="note">开播前可以用它确认游戏画面、跳障碍和排行榜都正常。</div>
+    </div>
+
+    <div class="card">
+      <h2>玩法说明</h2>
+      <ol>
+        <li>观众发任意弹幕自动上车，角色开始自动奔跑</li>
+        <li>角色不会自己跳障碍：发「跳」攒一次跳跃蓄力（最多 3 次），靠近障碍自动起跳</li>
+        <li>发「冲」短暂加速免伤，发「护」获得护盾</li>
+        <li>点赞会积累全场加速能量，礼物直接加分并开护盾</li>
+        <li>每轮 75 秒，前三名上榜，然后自动开始下一轮</li>
+        <li>今日总榜跨轮累计，换直播间或跨天自动清零</li>
+      </ol>
+      <div class="note">没人发「跳」时角色会撞障碍掉分，头顶会提示「发『跳』」；有观众起跳时 AI 陪跑也会一起跳。</div>
+    </div>
+  </div>
+
+  <footer>
+    弹幕为本地只读接入网页直播协议，协议可能随平台更新失效；请仅用于自己的直播间。长期商用建议走抖音开放平台「直播小玩法」。
+  </footer>
+</div>
+<script type="module" src="/host.js"></script>
+</body>
+</html>
