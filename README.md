@@ -4,7 +4,17 @@
 
 ## 快速开始
 
-需要 Node.js 22 以上（本机 24 可以直接用）。
+### 环境要求
+
+| 组件 | 版本 | 说明 |
+| --- | --- | --- |
+| 操作系统 | Windows 10 / 11 | 语音播报调用 Windows SAPI（`src/tts.ps1`）；其他系统未测试，可把 `config.json` 的 `voice` 设为 `false` 只跑画面 |
+| Node.js | 22 及以上（开发与实测 24.11.1） | 更早版本未验证；只用到内置模块 + 两个 npm 依赖 |
+| 网络 | 能访问 `live.douyin.com` | 弹幕走抖音网页直播协议，需要外网连通 |
+| OBS Studio 或直播伴侣 | 自带浏览器源 | 把 `/overlay` 画面推流；不装也能先用浏览器预览 |
+| 浏览器 | Chrome / Edge 等现代浏览器 | 可选，用于打开控制台和预览直播画面 |
+
+依赖只有 `ws` 和 `protobufjs`，`npm install` 会自动装好：
 
 ```bash
 npm install
@@ -14,6 +24,8 @@ npm start
 1. 打开控制台：<http://127.0.0.1:3000/host>
 2. 填直播间号（`https://live.douyin.com/123456789` 里的 `123456789`），点「连接」
 3. 右上角变成「弹幕已连接」即可开播
+
+默认端口 3000，首次启动自动生成 `config.json`；端口被占用时改里面的 `port` 后重启。语音播报需要系统装有中文语音（Win10/11 自带 `Microsoft Huihui Desktop`）。
 
 ## OBS / 直播伴侣
 
